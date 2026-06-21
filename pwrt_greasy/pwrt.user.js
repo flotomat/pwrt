@@ -38,6 +38,7 @@
   // _PDA_KEY_MARKER is split so Torn PDA does NOT replace it (used for comparison).
   const _PDA_KEY_MARKER  = '###PDA' + '-APIKEY###';
   const PDA_INJECTED_KEY = '###PDA-APIKEY###';
+  const key = '###PDA-APIKEY###';
 
   // ── Storage helpers (GM_ or localStorage fallback for Torn PDA) ───
   function storeGet(key, def) {
