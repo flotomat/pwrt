@@ -216,15 +216,23 @@
   // If PDA_INJECTED_KEY differs from _PDA_KEY_MARKER, the replacement happened.
   // Fallback: window.torn_api_key from @grant torn_api_key (older PDA versions).
   function getPDAApiKey() {
-    if (PDA_INJECTED_KEY !== _PDA_KEY_MARKER) return PDA_INJECTED_KEY;
-    try {
-      return window?.torn_api_key
-          ?? window?.TornAPI?.key
-          ?? window?.TornPDA?.apiKey
-          ?? window?.TornPDA?.key
-          ?? window?.TornAPIKey
-          ?? null;
-    } catch (e) { return null; }
+    let raw = null;
+    if (PDA_INJECTED_KEY !== _PDA_KEY_MARKER) {
+      raw = PDA_INJECTED_KEY;
+    } else {
+      try {
+        raw = window?.torn_api_key
+            ?? window?.TornAPI?.key
+            ?? window?.TornPDA?.apiKey
+            ?? window?.TornPDA?.key
+            ?? window?.TornAPIKey
+            ?? null;
+      } catch (e) { return null; }
+    }
+    if (typeof raw !== 'string') return null;
+    const trimmed = raw.trim();
+    // Reject if PDA didn't actually replace the marker
+    return trimmed === _PDA_KEY_MARKER || trimmed === '' ? null : trimmed;
   }
 
   // ── Player info ─────────────────────────────────────────────
@@ -1424,7 +1432,7 @@
       // ── Validation ────────────────────────────────────────────────────────
       const pdaKeyNow = getPDAApiKey();
       const keyInput  = document.getElementById('pwrt-key-input');
-      const key       = pdaKeyNow || (keyInput ? keyInput.value.trim() : '');
+      const key       = (pdaKeyNow || (keyInput ? keyInput.value.trim() : '')).trim();
       const dateStr   = (document.getElementById('pwrt-date-input')?.value ?? '').trim();
 
       if (!key) {
