@@ -129,24 +129,35 @@
   // ── Key permission check ────────────────────────────────────
   async function checkKeyPermissions(key) {
     if (!key) return [null, 'No API key entered.'];
-    let data;
-    // Use V2 key/info endpoint – matches core.py implementation.
-    // V2: https://api.torn.com/v2/key/info?key=xxx
-    // Response: { "info": { "access": { "level": 3 } } }
+
+    // Step 1: try V2 key/info for access-level detection.
+    // Response: { "info": { "access": { "level": 4 } } }
     try {
-      data = await gmFetch(buildUrl(`${API_V2}/key/info`, { key }));
+      const data = await gmFetch(buildUrl(`${API_V2}/key/info`, { key }));
+      if (!data.error) {
+        const level = parseInt(
+          data.info?.access?.level ??
+          data.key?.access_level  ??
+          data.key?.accessLevel   ??
+          0, 10);
+        if (level >= 4) return ['full', null];
+        if (level >= 3) return ['limited', null];
+        // level 0 likely means wrong response shape – fall through to validation
+        if (level > 0) return [null, `API key has insufficient access (level ${level}). Need "Limited" (3) or higher.`];
+      }
+    } catch (_) { /* network error – fall through */ }
+
+    // Step 2: key/info failed or returned unexpected shape.
+    // Validate via user/basic (which is needed in runReport anyway).
+    // If this succeeds the key is valid; assume "limited" access level.
+    try {
+      const basic = await gmFetch(buildUrl(`${API_V2}/user/basic`, { key }));
+      if (basic.error) return [null, `API error ${basic.error.code}: ${basic.error.error}`];
+      // Key is valid – we just can't determine the exact level; proceed as limited.
+      return ['limited', null];
     } catch (e) {
       return [null, 'Network error during key check: ' + e.message];
     }
-    if (data.error) return [null, `API error ${data.error.code}: ${data.error.error}`];
-    const level = parseInt(
-      data.info?.access?.level ??
-      data.key?.access_level  ??
-      data.key?.accessLevel   ??
-      0, 10);
-    if (level >= 4) return ['full', null];
-    if (level >= 3) return ['limited', null];
-    return [null, `API key has insufficient access (level ${level}). Need "Limited" (3) or higher.`];
   }
 
   // ── Date helpers ────────────────────────────────────────────
