@@ -1388,7 +1388,7 @@
         lastDate = dateStr;
         const dl = document.createElement('div');
         dl.className = 'vtl-date-label';
-        dl.style.top = vpct(ts) + '%';
+        dl.style.top = 'calc(' + vpct(ts) + '% - 14px)';
         dl.textContent = dateStr;
         axisEl.appendChild(dl);
       }
