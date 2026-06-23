@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         PWRT – Personal War Report Tool
 // @namespace    https://greasyfork.org/scripts/pwrt
-// @version      1.1.10
+// @version      1.1.11
 // @description  Personal War Report Tool for Torn – shows your ranked-war statistics on the Factions page. Works in Torn PDA (iOS/Android) and desktop browsers with Tampermonkey/Violentmonkey. On first use you will be prompted for your Torn API key (Limited access or higher).
 // @author       PWRT
 // @homepageURL  https://github.com/flotomat/pwrt
@@ -21,8 +21,8 @@
 /* ============================================================
    PWRT – Personal War Report Tool  (Userscript Edition)
    Check this to be working jus tlike the PHP-Report.
-   Anforderungen: Torn API Key (mindestens "Limited", für
-   vollständige Last-Action-Analyse "Full Access").
+   Requirements: Torn API Key (at least "Limited"; for
+   full last-action analysis use "Full Access").
    ============================================================ */
 
 (function () {
@@ -786,7 +786,7 @@
   <!-- TAB: Dashboard -->
   <div id="pwrt-tab-dashboard" class="tab-pane active">
     <h2>Dashboard</h2>
-    ${accessLevel !== 'full' ? '<div class="pwrt-limited-banner">⚠ <strong>Eingeschränkter API-Zugriff (Limited Key)</strong><br>Aktivitätsbänder (Reisen, Krankenhaus, aktive Phasen), Erholungszeit und Aktive Verwundbarkeit erfordern einen <strong>Full-Access-Key</strong>. Diese Informationen fehlen im aktuellen Report.</div>' : ''}
+    ${accessLevel !== 'full' ? '<div class="pwrt-limited-banner">⚠ <strong>Restricted API Access (Limited Key)</strong><br>Activity bands (travel, hospital, active phases), recovery time and active vulnerability require a <strong>Full Access key</strong>. These details are missing from this report.</div>' : ''}
     <div class="tl-legend">
       <span class="leg-item"><span class="leg-dot" style="background:#3aaa55"></span> Active play</span>
       <span class="leg-item"><span class="leg-dot" style="background:#5bc8f5"></span> In the air</span>
@@ -830,7 +830,7 @@
 
   <!-- TAB: Fight Details -->
   <div id="pwrt-tab-fights" class="tab-pane">
-    ${accessLevel !== 'full' ? '<div class="pwrt-limited-banner">⚠ <strong>Eingeschränkter API-Zugriff (Limited Key)</strong><br>Für eingehende Angriffe fehlen die Spalten <strong>Status</strong>, <strong>Letzte Aktion</strong> und <strong>Zeitabstand</strong> sowie die Verhaltensanalyse. Diese Informationen erfordern einen <strong>Full-Access-Key</strong>.</div>' : ''}
+    ${accessLevel !== 'full' ? '<div class="pwrt-limited-banner">⚠ <strong>Restricted API Access (Limited Key)</strong><br>For incoming attacks the columns <strong>State</strong>, <strong>Last Action</strong> and <strong>Time before hit</strong> as well as behavior analysis are unavailable. These details require a <strong>Full Access key</strong>.</div>' : ''}
     <div class="columns">
       <div class="col col-left">
         <h2>Outgoing Attacks</h2>
@@ -1636,9 +1636,9 @@
       // Torn PDA injected a key.
       // Input field is hidden initially; shown by async check below if key is only Limited.
       keySection = `
-        <span id="pwrt-pda-key-info" style="background:#1a2a1a;border:1px solid #336633;border-radius:4px;padding:5px 10px;color:#88dd88;font-size:12px">🔑 PDA-Key wird geprüft…</span>
-        <input id="pwrt-key-input" type="password" placeholder="Full-Access-Key (optional)" value="" autocomplete="off" style="display:none">
-        <span id="pwrt-pda-key-hint" style="color:#ffcc55;font-size:12px;font-weight:bold;display:none">⚠ Dein PDA-Key hat nur Limited-Zugriff. Für vollständige Log-Analyse trage einen Full-Access-Key ein.</span>`;
+        <span id="pwrt-pda-key-info" style="background:#1a2a1a;border:1px solid #336633;border-radius:4px;padding:5px 10px;color:#88dd88;font-size:12px">🔑 Checking PDA key…</span>
+        <input id="pwrt-key-input" type="password" placeholder="Full Access key (optional)" value="" autocomplete="off" style="display:none">
+        <span id="pwrt-pda-key-hint" style="color:#ffcc55;font-size:12px;font-weight:bold;display:none">⚠ Your PDA key has Limited access only. Enter a Full Access key for complete log analysis.</span>`;
     } else {
       // Manual key entry (desktop extension or Torn PDA without auto-inject)
       keySection = `
@@ -1715,12 +1715,12 @@
           const inp  = document.getElementById('pwrt-key-input');
           const hint = document.getElementById('pwrt-pda-key-hint');
           if (level === 'full') {
-            if (badge) { badge.textContent = '🔑 PDA Full-Access-Key aktiv'; }
+            if (badge) { badge.textContent = '🔑 PDA Full Access key active'; }
             // Input stays hidden – no override needed
           } else {
             // limited or unknown → show override field
             if (badge) {
-              badge.textContent = '⚠ PDA-Key aktiv (nur Limited)';
+              badge.textContent = '⚠ PDA key active (Limited only)';
               badge.style.background = '#2a1f00';
               badge.style.borderColor = '#cc8800';
               badge.style.color = '#ffcc55';
@@ -1732,7 +1732,7 @@
           }
         } catch (_) {
           _pdaKeyLevelCache = null;
-          if (badge) badge.textContent = '🔑 PDA-Key (Prüfung fehlgeschlagen)';
+          if (badge) badge.textContent = '🔑 PDA key (check failed)';
           const inp = document.getElementById('pwrt-key-input');
           if (inp) inp.style.display = ''; // show field as fallback
         }
@@ -1816,7 +1816,7 @@
 
       if (manualKey) {
         // Validate the manually entered key before proceeding
-        setStatus('Prüfe eingegebenen Key…');
+        setStatus('Checking entered key…');
         const [manLevel, manErr] = await checkKeyPermissions(manualKey);
         if (manLevel) {
           key = manualKey;
@@ -1828,7 +1828,7 @@
           keySource = 'Torn PDA (override invalid: ' + (manErr || '?') + ')';
           preCheckedLevel = _pdaKeyLevelCache; // use cached result if available
         } else {
-          showLoadingErr('Eingegebener Key ungültig: ' + esc(manErr || 'unbekannter Fehler') + '<br>Kein PDA-Key als Fallback verfügbar.');
+          showLoadingErr('Entered key is invalid: ' + esc(manErr || 'unknown error') + '<br>No PDA key available as fallback.');
           return;
         }
       } else if (pdaKeyNow) {
@@ -1836,7 +1836,7 @@
         keySource = 'Torn PDA';
         preCheckedLevel = _pdaKeyLevelCache; // use cached result – avoids redundant API call
       } else {
-        showLoadingErr('Kein API-Key gefunden.<br>Trage deinen Torn API-Key in das Feld ein.');
+        showLoadingErr('No API key found.<br>Please enter your Torn API key in the field above.');
         return;
       }
 
@@ -1879,7 +1879,7 @@
         showLoadingErr(
           esc(err.message || String(err)) +
           '<br><span style="color:#886;font-size:11px;margin-top:6px;display:block">' +
-          'Verwendeter Key: ' + esc(_masked) + ' &nbsp;·&nbsp; Quelle: ' + esc(keySource) +
+          'Key used: ' + esc(_masked) + ' &nbsp;·&nbsp; Source: ' + esc(keySource) +
           '</span>'
         );
         bar.classList.add('pwrt-expanded');
